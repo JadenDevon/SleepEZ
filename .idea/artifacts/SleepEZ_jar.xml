@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="SleepEZ:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/SleepEZ_jar</output-path>
+    <root id="archive" name="SleepEZ.jar">
+      <element id="module-output" name="SleepEZ" />
+    </root>
+  </artifact>
+</component>

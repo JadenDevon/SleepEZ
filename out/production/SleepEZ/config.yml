@@ -1,0 +1,5 @@
+#Configuration file for SleepEZ
+
+#Percentage of players needed to skip night
+#Must be between 0 and 1 (defaults to 0.5)
+Percentage: 0.5

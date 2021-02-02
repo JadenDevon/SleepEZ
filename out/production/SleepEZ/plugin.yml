@@ -1,0 +1,7 @@
+main: com.devonsreach.sleepez.SleepEZ
+version: 0.2.1
+name: SleepEZ
+permissions:
+  sleepez.bypass:
+    description: Allows user to not be counted toward total player count for sleep events.
+    default: op
