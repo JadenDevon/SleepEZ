@@ -1,0 +1,68 @@
+name: Sleepez
+version: '${project.version}'
+main: com.devonsreach.sleepez.SleepEZ
+api-version: 1.18
+authors: [ JadenDevon ]
+description: Configurable sleep plugin with time-lapse
+website: https://www.spigotmc.org/resources/sleepez.64732/
+permissions:
+  sleepez.ignoreplayer:
+    description: Allows user to be ignored when counting online players for sleep events.
+    default: op
+  sleepez.sleepmaster:
+    description: Allows user to activate sleep events without any other players needing to sleep.
+    default: false
+  sleepez.admin:
+    description: Allows user to use sleepEZReload command.
+    default: op
+    children:
+      sleepez.ignoreplayer
+  sleepez.insomniac:
+    description: Prevents a player from sleeping.
+    default: false
+commands:
+  EZReload:
+    description: Reloads config
+    usage: /<command>
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZTimelapse:
+    description: Enables user to set Time-Lapse to true or false in the config.
+    usage: /<command> [true|false]
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZTimelapseSpeed:
+    description: Enables user to set Time-Lapse Speed [1-10] in the config.
+    usage: /<command> [1-10]
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZUsePercent:
+    description: Sets Use Percent or Number to PERCENT in config.
+    usage: /<command>
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZUseNumber:
+    description: Sets Use Percent or Number to NUMBER in config.
+    usage: /<command>
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZSetPercent:
+    description: Sets Percentage of Players in config.
+    usage: /<command> [1-100]
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZSetNumber:
+    description: Sets Percentage of Players to PERCENT in config.
+    usage: /<command> [number]
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZSetEndStorm:
+    description: Sets End Storm to true or false in the config
+    usage: /<command> [true|false]
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZSetUnsafeSleep:
+    description: Sets Allow Unsafe Sleep to true or false in the config
+    usage: /<command> [true|false]
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
