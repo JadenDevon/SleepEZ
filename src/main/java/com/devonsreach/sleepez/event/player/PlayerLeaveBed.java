@@ -24,5 +24,6 @@ public class PlayerLeaveBed implements Listener {
                 player.sendMessage(sleepingPlayer.getDisplayName() + " is no longer trying to sleep.");
             }
         }
+        plugin.sleeperList.remove(sleepingPlayer);
     }
 }
