@@ -18,6 +18,8 @@ import com.devonsreach.sleepez.event.player.PlayerLeaveBed;
 
 public class SleepEZ extends JavaPlugin {
 
+    Logger logger = getLogger();
+
     public SleeperList sleeperList = new SleeperList(this);
 
     @Override
@@ -28,14 +30,14 @@ public class SleepEZ extends JavaPlugin {
         registerEvents();
         registerConfig();
 
-        getLogger().info(pdFile.getName() + " " + pdFile.getVersion() + " has been enabled ");
-        getLogger().info("Wakey, wakey! Eggs and bakey!");
+        logger.info(pdFile.getName() + " " + pdFile.getVersion() + " has been enabled ");
+        logger.info("Wakey, wakey! Eggs and bakey!");
     }
 
     @Override
     public void onDisable() {
         PluginDescriptionFile pdFile = getDescription();
-        Logger logger = getLogger();
+        //Logger logger = getLogger();
         logger.info(pdFile.getName() + " has been disabled " + pdFile.getVersion());
         logger.info("It's night night time. It's sleepy time. It's time to go to bed.");
     }
@@ -62,12 +64,12 @@ public class SleepEZ extends JavaPlugin {
 
     private void registerConfig() {
         if (!getDataFolder().exists()) {
-            getLogger().info("Config directory not found for SleepEZ. Creating directory.");
+            logger.info("Config directory not found for SleepEZ. Creating directory.");
             getDataFolder().mkdirs();
         }
         File file = new File(getDataFolder(), "config.yml");
         if (!file.exists()) {
-            getLogger().info("config.yml not found. Creating default config.yml");
+            logger.info("config.yml not found. Creating default config.yml");
             saveDefaultConfig();
             return;
         }
@@ -75,18 +77,18 @@ public class SleepEZ extends JavaPlugin {
     }
 
     private void checkConfig() {
-        getLogger().info("checking config");
+        logger.info("checking config");
         File file = new File(getDataFolder(), "config.yml");
         Configuration current = YamlConfiguration.loadConfiguration(file);
         Configuration defaults = getConfig().getDefaults();
         boolean update = false;
         if (!getDescription().getVersion().equals(current.getString("Version"))) {
-            getLogger().info("Config and Plugin versions do not match. Updating config.yml.");
+            logger.info("Config and Plugin versions do not match. Updating config.yml.");
             update = true;
         } else {
             for (String defaultKey : defaults.getKeys(true)) {
                 if (!current.contains(defaultKey)) {
-                    getLogger().info("Key(s) missing from config.yml. Repopulating missing key(s).");
+                    logger.info("Key(s) missing from config.yml. Repopulating missing key(s).");
                     update = true;
                     break;
                 }
@@ -103,11 +105,11 @@ public class SleepEZ extends JavaPlugin {
                     getConfig().set(defaultKey, current.get(defaultKey));
                 }
             }
-            getLogger().info("config.yml has been updated successfully.");
+            logger.info("config.yml has been updated successfully.");
             getConfig().set("Version", getDescription().getVersion());
             saveConfig();
         } else {
-            getLogger().info("Valid config.yml found.");
+            logger.info("Valid config.yml found.");
         }
     }
 //End of Class

@@ -1,7 +1,7 @@
 name: Sleepez
 version: '${project.version}'
 main: com.devonsreach.sleepez.SleepEZ
-api-version: 1.18
+api-version:
 authors: [ JadenDevon ]
 description: Configurable sleep plugin with time-lapse
 website: https://www.spigotmc.org/resources/sleepez.64732/
@@ -15,8 +15,6 @@ permissions:
   sleepez.admin:
     description: Allows user to use sleepEZReload command.
     default: op
-    children:
-      sleepez.ignoreplayer
   sleepez.insomniac:
     description: Prevents a player from sleeping.
     default: false
