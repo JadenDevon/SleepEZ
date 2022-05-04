@@ -1,7 +1,9 @@
+/*
+Main handler for server events involving players trying to enter their bed
+ */
 package com.devonsreach.sleepez.event.player;
 
 import com.devonsreach.sleepez.SleepEZ;
-import com.devonsreach.sleepez.misc.SleeperList;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -15,24 +17,50 @@ public class PlayerEnterBed implements Listener {
 
     private final SleepEZ plugin;
 
+    private final Logger logger;
+
+    private Player sleepingPlayer;
+
+    private String playerEnterBedMessage;
+    private String moreSleepersNeededMessage;
+    private String percentTriggeredMessage;
+    private String numberTriggeredMessage;
+    private int numPlayers;
+
     public PlayerEnterBed(SleepEZ pl) {
         plugin = pl;
+        logger = plugin.getLogger();
     }
 
+    //Event handler for player entering beds
     @EventHandler
     public void onPlayerEnterBed(PlayerBedEnterEvent event) {
-        Player sleepingPlayer = event.getPlayer();
+        sleepingPlayer = event.getPlayer();
 
-        if (plugin.getConfig().getBoolean("Allow Unsafe Sleep")) {
+        numPlayers = checkNumPlayers();
+        importMessages();
+        setMessages();
+
+        //Prevent entering bed during time-lapse if not allowed in config
+        if (!plugin.config.isAllowEnterBedDuringTimeLapse()) {
+            if (plugin.timeLapseTriggered) {
+                event.setUseBed(Event.Result.DENY);
+                event.setCancelled(true);
+                //sleepingPlayer.sendMessage("You may not enter your bed after the time-lapse has started.");
+            }
+        }
+
+        //Allows entering bed even when unsafe when specified in config
+        if (plugin.config.isAllowUnsafeSleep()) {
             if (event.getBedEnterResult().equals(PlayerBedEnterEvent.BedEnterResult.NOT_SAFE)) {
                 event.setUseBed(Event.Result.ALLOW);
             }
         }
-
-        if (event.isCancelled()){
+        if (event.isCancelled()) {
             return;
         }
 
+        //Skips all number checks if player has sleepmaster permission
         if (sleepingPlayer.hasPermission("sleepez.sleepmaster")) {
             setDay(event);
             return;
@@ -40,112 +68,104 @@ public class PlayerEnterBed implements Listener {
 
         plugin.sleeperList.add(sleepingPlayer);
 
-        if (plugin.getConfig().getString("Use Percent or Number").toUpperCase().equals("PERCENT")) {
-            percentSleep(event);
-        } else if (plugin.getConfig().getString("Use Percent or Number").toUpperCase().equals("NUMBER")) {
+        if (plugin.config.getUsePercentOrNumber().equalsIgnoreCase("NUMBER")) {
             numSleep(event);
         } else {
-            plugin.getConfig().set("Use Percent or Number", "PERCENT");
-            plugin.saveConfig();
             percentSleep(event);
         }
-
     }
 
+    //Triggered if PERCENT is designated in the config
     private void percentSleep(PlayerBedEnterEvent event) {
-        Player sleepingPlayer = event.getPlayer();
-
-        Logger logger = plugin.getLogger();
-
-        int numPlayers = 0;
-        int numSleepers = plugin.sleeperList.getLength();
-
-        for (Player player : event.getPlayer().getWorld().getPlayers()) {
-            if (!player.hasPermission("sleepez.ignoreplayer")) {
-                numPlayers++;
-            }
-        }
-        //never divide by zero
-        if (numPlayers < 1) {
-            numPlayers = 1;
-        }
-
-        logger.info("[SleepEZ] " + numSleepers + "/" + numPlayers + " are sleeping.");
+        int numSleepers = plugin.sleeperList.size();
 
         double sleepPercent = (double) numSleepers/ (double) numPlayers;
-        double configPercent = plugin.getConfig().getDouble("Percentage of Players");
-        double neededPercent;
+        double percentMultiplier = ((double) plugin.config.getPercentOfPlayers() / 100);
 
-        //valid config check for "Percentage" value
-        if (configPercent >= 0 && configPercent <= 1) {
-            neededPercent = configPercent;
-        } else if (configPercent > 1 && configPercent <= 100) {
-            neededPercent = (configPercent / 100);
-        } else {
-            plugin.getConfig().set("Percentage of Players", 50);
-            plugin.saveConfig();
-            neededPercent = 0.5;
-        }
+        int numNeededSleepers = (int) Math.ceil(percentMultiplier * numPlayers) - numSleepers;
 
-        int numNeededSleepers = (int) Math.ceil(neededPercent * numPlayers);
-
-        if (sleepPercent >= neededPercent) {
+        //Triggers setDay() once designated percent of players sleeping is met
+        if (sleepPercent >= percentMultiplier) {
             for (Player player : sleepingPlayer.getWorld().getPlayers()) {
-                player.sendMessage("[SleepEZ] " + sleepingPlayer.getDisplayName() + " is now sleeping.");
-                player.sendMessage("[SleepEZ] At least " + (neededPercent * 100) + "% of players are sleeping. Skipping night!");
+                if (playerEnterBedMessage != null) {
+                    if (playerEnterBedMessage.length() > 0) {
+                        player.sendMessage("[SleepEZ] " + playerEnterBedMessage);
+                    }
+                }
+                if (percentTriggeredMessage != null) {
+                    if (percentTriggeredMessage.length() > 0) {
+                        player.sendMessage("[SleepEZ] " + percentTriggeredMessage);
+                    }
+                }
             }
-
-            logger.info("At least " + (neededPercent * 100) + "% of players are sleeping. Skipping night!");
+            logger.info("At least " + plugin.config.getPercentOfPlayers() + "% of players are sleeping. Skipping night!");
             setDay(event);
-
         } else {
+            if (moreSleepersNeededMessage.contains("[NUMBER]")) {
+                moreSleepersNeededMessage = moreSleepersNeededMessage.replace("[NUMBER]", String.valueOf(numNeededSleepers - numSleepers));
+            }
             for (Player player : sleepingPlayer.getWorld().getPlayers()) {
-                player.sendMessage("[SleepEZ] " + sleepingPlayer.getDisplayName() + " is now sleeping.");
-                player.sendMessage("[SleepEZ] " + numSleepers + " player(s) are sleeping. At least " + numNeededSleepers + " player(s) need to sleep.");
+                if (playerEnterBedMessage != null) {
+                    if (playerEnterBedMessage.length() > 0) {
+                        player.sendMessage("[SleepEZ] " + playerEnterBedMessage);
+                    }
+                }
+                if (moreSleepersNeededMessage != null) {
+                    if (moreSleepersNeededMessage.length() > 0) {
+                        player.sendMessage("[SleepEZ] " + moreSleepersNeededMessage);
+                    }
+                }
             }
         }
     }
 
+    //Triggered if NUMBER is designated in the config
     private void numSleep(PlayerBedEnterEvent event) {
         Player sleepingPlayer = event.getPlayer();
 
-        Logger logger = plugin.getLogger();
+        int numSleepers = plugin.sleeperList.size();
 
-        int numPlayers = 0;
-        int numSleepers = plugin.sleeperList.getLength();
-        int neededSleepers = plugin.getConfig().getInt("Number of Sleepers");
-
-        for (Player player : sleepingPlayer.getWorld().getPlayers()) {
-            numPlayers++;
-        }
-
-        if (numSleepers == numPlayers) {
+        if (numSleepers >= plugin.config.getNumberOfSleepers()) {
             for (Player player : sleepingPlayer.getWorld().getPlayers()) {
-                player.sendMessage("[SleepEZ] All players are sleeping.");
+                if (playerEnterBedMessage.length() > 0) {
+                    player.sendMessage("[SleepEZ] " + playerEnterBedMessage);
+                }
+                if (numberTriggeredMessage.length() > 0) {
+                    player.sendMessage("[SleepEZ] " + numberTriggeredMessage);
+                }
             }
+            logger.info("Skipping night");
             setDay(event);
-            return;
-        }
-
-        if (numSleepers >= neededSleepers) {
-            for (Player player : sleepingPlayer.getWorld().getPlayers()) {
-                player.sendMessage("[SleepEZ] " + numSleepers + "/" + neededSleepers + " needed players are sleeping. Skipping night.");
-            }
-            logger.info(numSleepers + "/" + neededSleepers + " needed players are sleeping. Skipping night");
+        } else if (numSleepers <= sleepingPlayer.getWorld().getPlayers().size()) {
+            logger.info("Skipping night");
             setDay(event);
         } else {
+            if (moreSleepersNeededMessage != null) {
+                if (moreSleepersNeededMessage.contains("[NUMBER]")) {
+                    moreSleepersNeededMessage = moreSleepersNeededMessage.replace("[NUMBER]", String.valueOf(plugin.config.getNumberOfSleepers() - numSleepers));
+                }
+            }
             for (Player player : sleepingPlayer.getWorld().getPlayers()) {
-                player.sendMessage("[SleepEZ] " + sleepingPlayer.getDisplayName() + " is now sleeping.");
-                player.sendMessage("[SleepEZ] " + (neededSleepers - numSleepers) + " player(s) still need to sleep.");
+                if (playerEnterBedMessage != null) {
+                    if (playerEnterBedMessage.length() > 0) {
+                        player.sendMessage("[SleepEZ] " + playerEnterBedMessage);
+                    }
+                }
+                if (moreSleepersNeededMessage != null) {
+                    if (moreSleepersNeededMessage.length() > 0) {
+                        player.sendMessage("[SleepEZ] " + moreSleepersNeededMessage);
+                    }
+                }
             }
         }
     }
 
+    //Sets time to day once required number of players are sleeping
     private void setDay(PlayerBedEnterEvent event) {
-        if (plugin.getConfig().getBoolean("End Storm")) {
+        if (plugin.config.isEndStorm()) {
             endStorm(event);
         }
-        if (plugin.getConfig().getBoolean("Time-Lapse")) {
+        if (!plugin.timeLapseTriggered && plugin.config.isTimeLapse()) {
             timeLapse(event);
         } else {
             if (event.getPlayer().getWorld().getTime() > 12541 && event.getPlayer().getWorld().getTime() < 23458){
@@ -154,33 +174,71 @@ public class PlayerEnterBed implements Listener {
         }
     }
 
+    //Ends storm if End Storm is set to true in config
     private void endStorm(PlayerBedEnterEvent event) {
         event.getPlayer().getWorld().setStorm(false);
         event.getPlayer().getWorld().setThundering(false);
     }
 
+    //Initiates time-lapse if set to true in config
     private void timeLapse(PlayerBedEnterEvent event) {
         long currentTime = event.getPlayer().getWorld().getTime();
-        int timeLapseSpeed = plugin.getConfig().getInt("Time-Lapse Speed");
-        if (timeLapseSpeed < 1 || timeLapseSpeed > 10) {
-            timeLapseSpeed = 5;
-            plugin.getConfig().set("Time-Lapse Speed", timeLapseSpeed);
-            plugin.saveConfig();
-        }
         if(currentTime > 12541 && currentTime < 23458) {
+            //Sets variable to prevent secondary time-lapses.
+            plugin.timeLapseTriggered = true;
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    double timeLapseSpeed = plugin.getConfig().getDouble("Time-Lapse Speed") * 40;
+                    int timeLapseSpeed = plugin.config.getTimeLapseSpeed() * 20;
                     long currentTime = event.getPlayer().getWorld().getTime();
                     if (currentTime > 12541 && currentTime < (23999 - timeLapseSpeed)) {
                         long t = currentTime + (long) timeLapseSpeed;
                         event.getPlayer().getWorld().setTime(t);
                     } else {
+                        //Removes block for time-lapses once time-lapse has completed
+                        plugin.timeLapseTriggered = false;
                         this.cancel();
                     }
                 }
             }.runTaskTimer(plugin, 0, 1);
         }
+    }
+
+    //
+    private void importMessages() {
+        moreSleepersNeededMessage = plugin.messageConfig.getMoreSleepersNeededMessage();
+        playerEnterBedMessage = plugin.messageConfig.getPlayerEnterBedMessage();
+        percentTriggeredMessage = plugin.messageConfig.getPercentTriggeredMessage();
+        numberTriggeredMessage = plugin.messageConfig.getNumberTriggeredMessage();
+    }
+
+    //Replaces variables in messages if variables are used
+    private void setMessages() {
+        if (playerEnterBedMessage.contains("[PLAYER]")) {
+            playerEnterBedMessage = playerEnterBedMessage.replace("[PLAYER]", sleepingPlayer.getDisplayName());
+        }
+        if (percentTriggeredMessage.contains("[PERCENT]")) {
+            percentTriggeredMessage = percentTriggeredMessage.replace("[PERCENT]", String.valueOf(plugin.config.getPercentOfPlayers()));
+        }
+        if (numberTriggeredMessage.contains("[NUMBER]")) {
+            if (plugin.sleeperList.size() >= numPlayers) {
+                numberTriggeredMessage = numberTriggeredMessage.replace("[NUMBER]", String.valueOf(plugin.sleeperList.size()));
+            } else {
+                numberTriggeredMessage = numberTriggeredMessage.replace("[NUMBER]", String.valueOf(plugin.config.getNumberOfSleepers()));
+            }
+        }
+    }
+
+    private int checkNumPlayers() {
+        int numPlayers = 0;
+        for (Player player : sleepingPlayer.getWorld().getPlayers()) {
+            if (!player.hasPermission("sleepez.ignoreplayer")) {
+                numPlayers++;
+            }
+        }
+        if (numPlayers < 1) {
+            numPlayers = 1;
+        }
+        return numPlayers;
     }
 }

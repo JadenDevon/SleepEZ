@@ -1,7 +1,6 @@
 name: Sleepez
 version: '${project.version}'
 main: com.devonsreach.sleepez.SleepEZ
-api-version:
 authors: [ JadenDevon ]
 description: Configurable sleep plugin with time-lapse
 website: https://www.spigotmc.org/resources/sleepez.64732/
@@ -16,7 +15,7 @@ permissions:
     description: Allows user to use sleepEZReload command.
     default: op
   sleepez.insomniac:
-    description: Prevents a player from sleeping.
+    description: Prevents a player from sleeping. (not yet implemented)
     default: false
 commands:
   EZReload:
@@ -24,9 +23,9 @@ commands:
     usage: /<command>
     permission: sleepez.admin
     permission-message: You do not have /<permission> to use this command.
-  EZTimelapse:
+  EZToggleTimelapse:
     description: Enables user to set Time-Lapse to true or false in the config.
-    usage: /<command> [true|false]
+    usage: /<command>
     permission: sleepez.admin
     permission-message: You do not have /<permission> to use this command.
   EZTimelapseSpeed:
@@ -34,13 +33,8 @@ commands:
     usage: /<command> [1-10]
     permission: sleepez.admin
     permission-message: You do not have /<permission> to use this command.
-  EZUsePercent:
+  EZToggleNumberPercent:
     description: Sets Use Percent or Number to PERCENT in config.
-    usage: /<command>
-    permission: sleepez.admin
-    permission-message: You do not have /<permission> to use this command.
-  EZUseNumber:
-    description: Sets Use Percent or Number to NUMBER in config.
     usage: /<command>
     permission: sleepez.admin
     permission-message: You do not have /<permission> to use this command.
@@ -54,13 +48,23 @@ commands:
     usage: /<command> [number]
     permission: sleepez.admin
     permission-message: You do not have /<permission> to use this command.
-  EZSetEndStorm:
+  EZToggleEndStorm:
     description: Sets End Storm to true or false in the config
-    usage: /<command> [true|false]
+    usage: /<command>
     permission: sleepez.admin
     permission-message: You do not have /<permission> to use this command.
-  EZSetUnsafeSleep:
+  EZToggleUnsafeSleep:
     description: Sets Allow Unsafe Sleep to true or false in the config
-    usage: /<command> [true|false]
+    usage: /<command>
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZToggleEnterBedDuringTimeLapse:
+    description: Toggles option to allow players to enter a bed after a time-lapse has bee triggered.
+    usage: /<command>
+    permission: sleepez.admin
+    permission-message: You do not have /<permission> to use this command.
+  EZToggleExitBedDuringTimeLapse:
+    description: Toggles optuon to allow players to leave their bed for the duration of a time-lapse.
+    usage: /<command>
     permission: sleepez.admin
     permission-message: You do not have /<permission> to use this command.

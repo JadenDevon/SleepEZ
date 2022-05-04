@@ -1,0 +1,27 @@
+# Do not modify this value
+Version: 1.1.0-SNAPSHOT
+
+# # # Messages # # #
+
+# Message that everyone receives when a player enters a bed. Use "[PLAYER]"
+# to show the name of the player trying to sleep.
+Player Enter Bed: "[PLAYER] is now sleeping."
+
+# Message that everyone receives if more players still need to sleep. Use
+# "[NUMBER]" to show the number of players that still need to sleep.
+More Sleepers Needed: "At least [NUMBER] more players need to sleep."
+
+# Message that everyone receives when the correct percent of online players are
+# sleeping (if Use Percent or Number = PERCENT). Use "[PERCENT]" to show the required
+# percent of players that need to sleep.
+Sleep Percent Triggered: "At least [PERCENT]% of players are sleeping. Skipping night."
+
+# Message that everyone receives when the correct number of online players are
+# sleeping (if Use Percent or Number = NUMBER). Use "[NUMBER]" to show the required
+# number of players that need to sleep.
+Sleep Number Triggered: "At least [NUMBER] players are sleeping. Skipping night."
+
+# Message that everyone receives when a player exits a bed before the night
+# is skipped. Use "[PLAYER]" to show the name of the player that is no
+# longer sleeping.
+Player Exit Bed: "[PLAYER] is no longer trying to sleep."

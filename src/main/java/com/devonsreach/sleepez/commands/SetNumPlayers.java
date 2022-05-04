@@ -17,27 +17,36 @@ public class SetNumPlayers implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
-        int numPlayers;
+        int numSleepers;
 
         if (args.length != 1){
             return false;
         }
 
         try {
-            numPlayers = Integer.parseInt(args[0]);
+            numSleepers = Integer.parseInt(args[0]);
         }
         catch (NumberFormatException ex){
             return false;
         }
 
-        if (numPlayers >= 0) {
-            plugin.getConfig().set("Number of Sleepers", numPlayers);
-            plugin.saveConfig();
+        if (numSleepers == plugin.config.getNumberOfSleepers()) {
             if (commandSender instanceof Player) {
                 Player player = (Player) commandSender;
-                player.sendMessage(ChatColor.GREEN + "Number of players required to sleep is now " + numPlayers);
+                player.sendMessage(ChatColor.GREEN + "Number of players required to sleep is already set to " + numSleepers);
             } else {
-                plugin.getLogger().info("Number of players required to sleep is now " + numPlayers);
+                plugin.getLogger().info("Number of players required to sleep is already set to " + numSleepers);
+            }
+            return true;
+        }
+
+        if (numSleepers >= 0) {
+            plugin.config.setNumberOfSleepers(numSleepers);
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+                player.sendMessage(ChatColor.GREEN + "Number of players required to sleep is now " + numSleepers);
+            } else {
+                plugin.getLogger().info("Number of players required to sleep is now " + numSleepers);
             }
             return true;
         } else {

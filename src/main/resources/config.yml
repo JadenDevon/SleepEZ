@@ -1,5 +1,9 @@
 # Configuration file for SleepEZ
-Version: 1.0.0 # DO NOT MODIFY THIS VALUE!
+
+# DO NOT MODIFY THIS VALUE!
+Version: 1.1.0
+
+# # # Sleep Percent/Number # # #
 
 # Indicates whether you want to require a certain PERCENT of players or
 # a certain NUMBER of players to sleep before skipping night.
@@ -7,21 +11,34 @@ Version: 1.0.0 # DO NOT MODIFY THIS VALUE!
 Use Percent or Number: PERCENT
 
 # Minimum Percentage of players required to sleep before skipping night
-# when using Use Percent or Number = Percent.
-# Accepts whole numbers 1-100 or decimals 0-1. (Default: 50)
-Percentage of Players: 50
+# when using PERCENT.
+# Accepts whole numbers 1-100. (Default: 50)
+Percent of Players: 50
 
 # Minimum Number of players required to sleep before skipping night
-# when Use Percent or Number = NUMBER. (Default: 2)
+# when using NUMBER. (Default: 2)
 Number of Sleepers: 2
+
+# # # Time-Lapse # # #
 
 # Do you want a time-lapse as it goes from night to day? (Default: false)
 Time-Lapse: false
+
 # How fast do you want the time-lapse? (1-10, Allows Decimals, Default: 5)
 Time-Lapse Speed: 5
 
+# Allows players to exit their beds during time-lapse. (Default: false)
+Allow Exit Bed During Time-Lapse: false
+
+# Allows players to enter their beds during time-lapse. (Default: false)
+Allow Enter Bed During Time-Lapse: false
+
+# # # Storm # # #
+
 # Allows sleep during a storm. (Default: true)
 End Storm: true
+
+# # # Unsafe Sleep # # #
 
 # Allows players to sleep when hostile mobs are nearby. (Default: false)
 Allow Unsafe Sleep: false

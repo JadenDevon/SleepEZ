@@ -18,10 +18,22 @@ public class PlayerLeaveBed implements Listener {
     public void onPlayerLeaveBed(PlayerBedLeaveEvent event) {
         Player sleepingPlayer = event.getPlayer();
 
+        if (!plugin.config.isAllowExitBedDuringTimeLapse()) {
+            if (plugin.timeLapseTriggered) {
+                event.setCancelled(true);
+                return;
+            }
+        }
         //Check if it is still night when the player leaves their bed
         if (sleepingPlayer.getWorld().getTime() > 12541 && sleepingPlayer.getWorld().getTime() < 23458) {
+            String playerExitBedMessage = plugin.messageConfig.getPlayerExitBedMessage();
+            if (playerExitBedMessage.contains("[PLAYER]")) {
+                playerExitBedMessage = playerExitBedMessage.replaceAll("[PLAYER]", sleepingPlayer.getDisplayName());
+            }
             for (Player player : sleepingPlayer.getWorld().getPlayers()) {
-                player.sendMessage(sleepingPlayer.getDisplayName() + " is no longer trying to sleep.");
+                if (playerExitBedMessage.length() > 0) {
+                    player.sendMessage(playerExitBedMessage);
+                }
             }
         }
         plugin.sleeperList.remove(sleepingPlayer);

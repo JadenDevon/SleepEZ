@@ -20,12 +20,13 @@ public class ReloadConfig implements CommandExecutor {
         if (args.length > 0) {
             return false;
         }
-        plugin.reloadConfig();
+        plugin.config.reload();
+        plugin.messageConfig.reload();
         if (commandSender instanceof Player) {
             Player player = (Player) commandSender;
-            player.sendMessage(ChatColor.GREEN + "SleepEZ's config.yml has been reloaded.");
+            player.sendMessage(ChatColor.GREEN + "[SleepEZ] config.conf has been reloaded.");
         } else {
-            plugin.getLogger().info("config.yml has been reloaded.");
+            plugin.getLogger().info("config.conf has been reloaded.");
         }
         return true;
     }

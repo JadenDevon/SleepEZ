@@ -21,8 +21,18 @@ public class SetUseNumPlayers implements CommandExecutor {
             return false;
         }
 
-        plugin.getConfig().set("Use Percent or Number", "NUMBER");
-        plugin.saveConfig();
+        if (plugin.config.getUsePercentOrNumber().equalsIgnoreCase("NUMBER")) {
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+                player.sendMessage(ChatColor.GREEN + "SleepEZ is already set to use NUMBER of players sleeping.");
+            } else {
+                plugin.getLogger().info("SleepEZ is already set to use NUMBER of players sleeping.");
+            }
+            return true;
+        }
+
+        plugin.config.setUsePercentOrNumber("NUMBER");
+
         if (commandSender instanceof Player) {
             Player player = (Player) commandSender;
             player.sendMessage(ChatColor.GREEN + "SleepEZ will now use NUMBER of players sleeping.");

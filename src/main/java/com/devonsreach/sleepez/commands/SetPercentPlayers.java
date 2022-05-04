@@ -17,27 +17,36 @@ public class SetPercentPlayers implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
-        double percent;
+        int percent;
 
         if (args.length != 1){
             return false;
         }
 
         try {
-            percent = Double.parseDouble(args[0]);
+            percent = Integer.parseInt(args[0]);
         }
         catch (NumberFormatException ex){
             return false;
         }
 
-        if (percent >= 0 && percent <= 100) {
-            plugin.getConfig().set("Percentage of Players", percent);
-            plugin.saveConfig();
+        if (percent == plugin.config.getPercentOfPlayers()) {
             if (commandSender instanceof Player) {
                 Player player = (Player) commandSender;
-                player.sendMessage(ChatColor.GREEN + "Percentage of players required to sleep is now " + percent);
+                player.sendMessage(ChatColor.GREEN + "Percent of player required to sleep is already set to " + percent);
             } else {
-                plugin.getLogger().info("Percentage of players required to sleep is now " + percent);
+                plugin.getLogger().info("Percent of players required to sleep is already set to " + percent);
+            }
+            return true;
+        }
+
+        if (percent >= 0 && percent <= 100) {
+            plugin.config.setPercentOfPlayers(percent);
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+                player.sendMessage(ChatColor.GREEN + "Percent of players required to sleep is now " + percent);
+            } else {
+                plugin.getLogger().info("Percent of players required to sleep is now " + percent);
             }
             return true;
         } else {

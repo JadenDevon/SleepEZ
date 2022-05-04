@@ -1,35 +1,49 @@
+/**
+ * Main handler for SleepEZ plugin
+ *
+ * @version 1.1.0
+ * @author JadenDevon
+ */
 package com.devonsreach.sleepez;
 
-import java.io.File;
-import java.util.logging.Logger;
-
 import com.devonsreach.sleepez.commands.*;
+import com.devonsreach.sleepez.configs.MainConfig;
+import com.devonsreach.sleepez.configs.MessageConfig;
 import com.devonsreach.sleepez.event.player.CancelSleepTimeSkip;
-import com.devonsreach.sleepez.misc.SleeperList;
-import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import com.devonsreach.sleepez.event.player.PlayerEnterBed;
+import com.devonsreach.sleepez.event.player.PlayerLeaveBed;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.devonsreach.sleepez.event.player.PlayerEnterBed;
-import com.devonsreach.sleepez.event.player.PlayerLeaveBed;
+import java.util.ArrayList;
+import java.util.logging.Logger;
+
 
 
 public class SleepEZ extends JavaPlugin {
 
-    Logger logger = getLogger();
+    final Logger logger = getLogger();
 
-    public SleeperList sleeperList = new SleeperList(this);
+    public MainConfig config;
+    public MessageConfig messageConfig;
+    public ArrayList<Player> sleeperList;
+
+    public boolean timeLapseTriggered = false;
 
     @Override
     public void onEnable() {
-        PluginDescriptionFile pdFile = getDescription();
+        config = new MainConfig(this);
+        messageConfig = new MessageConfig(this);
+        sleeperList = new ArrayList<>();
 
+        registerConfigs();
         registerCommands();
         registerEvents();
-        registerConfig();
+        checkLists();
 
+        PluginDescriptionFile pdFile = getDescription();
         logger.info(pdFile.getName() + " " + pdFile.getVersion() + " has been enabled ");
         logger.info("Wakey, wakey! Eggs and bakey!");
     }
@@ -37,21 +51,21 @@ public class SleepEZ extends JavaPlugin {
     @Override
     public void onDisable() {
         PluginDescriptionFile pdFile = getDescription();
-        //Logger logger = getLogger();
         logger.info(pdFile.getName() + " has been disabled " + pdFile.getVersion());
         logger.info("It's night night time. It's sleepy time. It's time to go to bed.");
     }
 
     private void registerCommands() {
         this.getCommand("EZReload").setExecutor(new ReloadConfig(this));
-        this.getCommand("EZUsePercent").setExecutor(new SetUsePercentPlayers(this));
+        this.getCommand("EZToggleNumberPercent").setExecutor(new ToggleNumberPercent(this));
         this.getCommand("EZSetPercent").setExecutor(new SetPercentPlayers(this));
-        this.getCommand("EZUseNumber").setExecutor(new SetUseNumPlayers(this));
         this.getCommand("EZSetNumber").setExecutor(new SetNumPlayers(this));
-        this.getCommand("EZTimelapse").setExecutor(new SetTimeLapse(this));
+        this.getCommand("EZToggleTimeLapse").setExecutor(new ToggleTimeLapse(this));
         this.getCommand("EZTimelapseSpeed").setExecutor(new SetTimeLapseSpeed(this));
-        this.getCommand("EZSetEndStorm").setExecutor(new SetEndStorm(this));
-        this.getCommand("EZSetUnsafeSleep").setExecutor(new SetAllowUnsafeSleep(this));
+        this.getCommand("EZToggleEndStorm").setExecutor(new ToggleEndStorm(this));
+        this.getCommand("EZToggleUnsafeSleep").setExecutor(new ToggleAllowUnsafeSleep(this));
+        this.getCommand("EZToggleEnterBedDuringTimeLapse").setExecutor(new ToggleEnterBedDuringTimeLapse(this));
+        this.getCommand("EZToggleExitBedDuringTimeLapse").setExecutor(new ToggleExitBedDuringTimeLapse(this));
     }
 
     private void registerEvents() {
@@ -62,54 +76,21 @@ public class SleepEZ extends JavaPlugin {
         pm.registerEvents(new PlayerLeaveBed(this), this);
     }
 
-    private void registerConfig() {
-        if (!getDataFolder().exists()) {
-            logger.info("Config directory not found for SleepEZ. Creating directory.");
-            getDataFolder().mkdirs();
-        }
-        File file = new File(getDataFolder(), "config.yml");
-        if (!file.exists()) {
-            logger.info("config.yml not found. Creating default config.yml");
-            saveDefaultConfig();
-            return;
-        }
-        checkConfig();
+    private void registerConfigs() {
+        config.setup();
+        messageConfig.setup();
     }
 
-    private void checkConfig() {
-        logger.info("checking config");
-        File file = new File(getDataFolder(), "config.yml");
-        Configuration current = YamlConfiguration.loadConfiguration(file);
-        Configuration defaults = getConfig().getDefaults();
-        boolean update = false;
-        if (!getDescription().getVersion().equals(current.getString("Version"))) {
-            logger.info("Config and Plugin versions do not match. Updating config.yml.");
-            update = true;
-        } else {
-            for (String defaultKey : defaults.getKeys(true)) {
-                if (!current.contains(defaultKey)) {
-                    logger.info("Key(s) missing from config.yml. Repopulating missing key(s).");
-                    update = true;
-                    break;
+    // Check in case of plugin reload by server while players are trying to sleep
+    private void checkLists() {
+        if (sleeperList.isEmpty()) {
+            for (Player player : getServer().getOnlinePlayers()) {
+                if (player.isSleeping()) {
+                    if (!sleeperList.contains(player)) {
+                        sleeperList.add(player);
+                    }
                 }
             }
-        }
-        if (update) {
-            if (file.exists()) {
-                file.delete();
-            }
-            saveDefaultConfig();
-            reloadConfig();
-            for (String defaultKey : defaults.getKeys(true)) {
-                if (current.contains(defaultKey)) {
-                    getConfig().set(defaultKey, current.get(defaultKey));
-                }
-            }
-            logger.info("config.yml has been updated successfully.");
-            getConfig().set("Version", getDescription().getVersion());
-            saveConfig();
-        } else {
-            logger.info("Valid config.yml found.");
         }
     }
 //End of Class

@@ -21,8 +21,18 @@ public class SetUsePercentPlayers implements CommandExecutor {
             return false;
         }
 
-        plugin.getConfig().set("Use Percent or Number", "PERCENT");
-        plugin.saveConfig();
+        if (plugin.config.getUsePercentOrNumber().equalsIgnoreCase("PERCENT")) {
+            if (commandSender instanceof Player) {
+                Player player = (Player) commandSender;
+                player.sendMessage(ChatColor.GREEN + "SleepEZ is already set to use PERCENT of players sleeping.");
+            } else {
+                plugin.getLogger().info("SleepEZ is already set to use PERCENT of players sleeping.");
+            }
+            return true;
+        }
+
+        plugin.config.setUsePercentOrNumber("PERCENT");
+
         if (commandSender instanceof Player) {
             Player player = (Player) commandSender;
             player.sendMessage(ChatColor.GREEN + "SleepEZ will now use PERCENT of players sleeping.");
