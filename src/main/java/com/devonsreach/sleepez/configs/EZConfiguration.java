@@ -138,6 +138,11 @@ public class EZConfiguration {
         return config.getBoolean(key);
     }
 
+    public void setConfigValue(String key, Object newValue) {
+        if (configKeyMap.containsKey(key))
+            configKeyMap.replace(key, newValue);
+    }
+
     public void setString(final String key, final String newValue) {
         save(key, newValue);
     }
