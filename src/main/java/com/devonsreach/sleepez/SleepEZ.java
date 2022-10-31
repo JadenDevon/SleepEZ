@@ -38,7 +38,6 @@ public class SleepEZ extends JavaPlugin {
         messageConfig = new MessageConfig(this);
         sleeperList = new ArrayList<>();
 
-        registerConfigs();
         registerCommands();
         registerEvents();
         checkLists();
@@ -74,11 +73,6 @@ public class SleepEZ extends JavaPlugin {
         pm.registerEvents(new CancelSleepTimeSkip(this), this);
         pm.registerEvents(new PlayerEnterBed(this), this);
         pm.registerEvents(new PlayerLeaveBed(this), this);
-    }
-
-    private void registerConfigs() {
-        config.setup();
-        messageConfig.setup();
     }
 
     // Check in case of plugin reload by server while players are trying to sleep

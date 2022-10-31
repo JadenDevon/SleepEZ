@@ -5,7 +5,7 @@ import com.devonsreach.sleepez.SleepEZ;
 import java.io.File;
 import java.util.logging.Logger;
 
-public class MainConfig extends SleepEZConfiguration{
+public class MainConfig extends EZConfiguration{
 
     private final SleepEZ plugin;
     private final Logger logger;
@@ -37,10 +37,6 @@ public class MainConfig extends SleepEZConfiguration{
         logger = pl.getLogger();
     }
 
-    public void setup() {
-        super.setup();
-    }
-
     public void loadConfigVariables() {
         usePercentOrNumber = getString(KEY_USE_PERCENT_OR_NUMBER);
         percentOfPlayers = getInt(KEY_PERCENT_OF_PLAYERS);
@@ -64,17 +60,13 @@ public class MainConfig extends SleepEZConfiguration{
 
     public void setUsePercentOrNumber(String newValue) {
         if (checkUsePercentOrNumber(newValue)) {
-            setString(KEY_USE_PERCENT_OR_NUMBER, this.usePercentOrNumber, newValue);
+            setString(KEY_USE_PERCENT_OR_NUMBER, newValue);
             usePercentOrNumber = newValue;
         }
     }
 
     private boolean checkUsePercentOrNumber(String newValue) {
-        if (!newValue.equalsIgnoreCase("PERCENT") && !newValue.equalsIgnoreCase("NUMBER")) {
-            return false;
-        } else {
-            return true;
-        }
+        return newValue.equalsIgnoreCase("PERCENT") || newValue.equalsIgnoreCase("NUMBER");
     }
 
     public int getPercentOfPlayers() {
@@ -83,17 +75,13 @@ public class MainConfig extends SleepEZConfiguration{
 
     public void setPercentOfPlayers(int newValue) {
         if (checkPercentOfPlayers(newValue)) {
-            setInt(KEY_PERCENT_OF_PLAYERS, percentOfPlayers, newValue);
+            setInt(KEY_PERCENT_OF_PLAYERS, newValue);
             percentOfPlayers = newValue;
         }
     }
 
     private boolean checkPercentOfPlayers(int newValue) {
-        if (newValue >= 0 && newValue <= 100) {
-            return true;
-        } else {
-            return false;
-        }
+        return newValue >= 0 && newValue <= 100;
     }
 
     public int getNumberOfSleepers() {
@@ -102,16 +90,13 @@ public class MainConfig extends SleepEZConfiguration{
 
     public void setNumberOfSleepers(int newValue) {
         if (checkNumberOfSleepers(newValue)) {
-            setInt(KEY_NUMBER_OF_SLEEPERS, numberOfSleepers, newValue);
+            setInt(KEY_NUMBER_OF_SLEEPERS, newValue);
             numberOfSleepers = newValue;
         }
     }
 
     private boolean checkNumberOfSleepers(int newValue) {
-        if (newValue >= 0) {
-            return true;
-        }
-        return false;
+        return newValue >= 0;
     }
 
     public boolean isTimeLapse() {
@@ -119,7 +104,7 @@ public class MainConfig extends SleepEZConfiguration{
     }
 
     public void setTimeLapse(boolean newValue) {
-        setBoolean(KEY_TIME_LAPSE, timeLapse, newValue);
+        setBoolean(KEY_TIME_LAPSE, newValue);
         timeLapse = newValue;
     }
 
@@ -129,16 +114,13 @@ public class MainConfig extends SleepEZConfiguration{
 
     public void setTimeLapseSpeed(int newValue) {
         if (checkTimeLapseSpeed(newValue)) {
-            setInt(KEY_TIME_LAPSE_SPEED, timeLapseSpeed, newValue);
+            setInt(KEY_TIME_LAPSE_SPEED, newValue);
             timeLapseSpeed = newValue;
         }
     }
 
     private boolean checkTimeLapseSpeed(int newValue) {
-        if (newValue >= 1 && newValue <= 10) {
-            return true;
-        }
-        return false;
+        return newValue >= 1 && newValue <= 10;
     }
 
     public boolean isAllowExitBedDuringTimeLapse() {
@@ -146,7 +128,7 @@ public class MainConfig extends SleepEZConfiguration{
     }
 
     public void setAllowExitBedDuringTimeLapse(boolean newValue) {
-        setBoolean(KEY_ALLOW_EXIT_BED_DURING_TIME_LAPSE, allowExitBedDuringTimeLapse, newValue);
+        setBoolean(KEY_ALLOW_EXIT_BED_DURING_TIME_LAPSE, newValue);
         allowExitBedDuringTimeLapse = newValue;
     }
 
@@ -155,7 +137,7 @@ public class MainConfig extends SleepEZConfiguration{
     }
 
     public void setAllowEnterBedDuringTimeLapse(boolean newValue) {
-        setBoolean(KEY_ALLOW_ENTER_BED_DURING_TIME_LAPSE, allowEnterBedDuringTimeLapse, newValue);
+        setBoolean(KEY_ALLOW_ENTER_BED_DURING_TIME_LAPSE, newValue);
         allowEnterBedDuringTimeLapse = newValue;
     }
 
@@ -164,7 +146,7 @@ public class MainConfig extends SleepEZConfiguration{
     }
 
     public void setEndStorm(boolean newValue) {
-        setBoolean(KEY_END_STORM, endStorm, newValue);
+        setBoolean(KEY_END_STORM, newValue);
         endStorm = newValue;
     }
 
@@ -173,7 +155,7 @@ public class MainConfig extends SleepEZConfiguration{
     }
 
     public void setAllowUnsafeSleep(boolean newValue) {
-        setBoolean(KEY_ALLOW_UNSAFE_SLEEP, allowUnsafeSleep, newValue);
+        setBoolean(KEY_ALLOW_UNSAFE_SLEEP, newValue);
         allowUnsafeSleep = newValue;
     }
 }
