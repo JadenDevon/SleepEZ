@@ -22,16 +22,16 @@ public class ToggleEndStorm implements CommandExecutor {
         }
 
         if (plugin.config.isEndStorm()) {
+            plugin.config.setEndStorm(false);
             if (commandSender instanceof Player) {
-                plugin.config.setEndStorm(false);
                 Player player = (Player) commandSender;
                 player.sendMessage(ChatColor.GREEN + "SleepEZ will no longer allow players to sleep during a storm.");
             } else {
                 plugin.getLogger().info("SleepEZ will no longer allow players to sleep during a storm.");
             }
         } else {
+            plugin.config.setEndStorm(true);
             if (commandSender instanceof Player) {
-                plugin.config.setEndStorm(true);
                 Player player = (Player) commandSender;
                 player.sendMessage(ChatColor.GREEN + "SleepEZ will now allow players to sleep during a storm.");
             } else {

@@ -1,47 +1,60 @@
 package com.devonsreach.sleepez.configs;
 
-import com.devonsreach.sleepez.SleepEZ;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class EZConfiguration {
 
-    private final SleepEZ plugin;
+    private final JavaPlugin plugin;
     private final Logger logger;
-    private final File configFile;
-    private Configuration config;
-    private Configuration defaults;
-    private HashMap<String, Object> configKeyMap;
-    private HashMap<String, Object> defaultKeyMap;
+    private final File serverConfigFile;
+    private Configuration serverConfig;
+    private Configuration defaultConfig;
+    private final ArrayList<String> serverConfigLines;
+    private final HashMap<String, Object> serverConfigKeyMap;
+    private final HashMap<String, Object> defaultConfigKeyMap;
 
-    public EZConfiguration(SleepEZ pl, File file) {
+    public EZConfiguration(JavaPlugin pl, File file) {
         plugin = pl;
         logger = pl.getLogger();
-        configFile = file;
-        configKeyMap = new HashMap<>();
-        defaultKeyMap = new HashMap<>();
+        serverConfigFile = file;
+        serverConfigLines = new ArrayList<>();
+        serverConfigKeyMap = new HashMap<>();
+        defaultConfigKeyMap = new HashMap<>();
         setup();
     }
 
     public void setup() {
-        InputStream resourceStream = plugin.getResource(configFile.getName());
+        initializeDefaultConfiguration();
+        initializeServerConfiguration();
+        checkServerConfig();
+        initializeKeyMap(serverConfigKeyMap, serverConfig);
+        initializeKeyMap(defaultConfigKeyMap, defaultConfig);
+        initializeServerConfigLinesArray();
+        saveServerConfigFile();
+    }
+
+    private void initializeDefaultConfiguration() {
+        InputStream resourceStream = plugin.getResource(serverConfigFile.getName());
         assert resourceStream != null;
         InputStreamReader streamReader = new InputStreamReader(resourceStream);
-        defaults = YamlConfiguration.loadConfiguration(streamReader);
-        if (!configFile.exists()) {
-            plugin.saveResource(configFile.getName(), false);
+        defaultConfig = YamlConfiguration.loadConfiguration(streamReader);
+    }
+
+    private void initializeServerConfiguration() {
+        if (!serverConfigFile.exists()) {
+            plugin.saveResource(serverConfigFile.getName(), true);
+            serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
         } else {
-            config = YamlConfiguration.loadConfiguration(configFile);
-            reload();
+            serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
+            checkServerConfig();
         }
-        initializeKeyMap(configKeyMap, config);
-        initializeKeyMap(defaultKeyMap, defaults);
     }
 
     private void initializeKeyMap(HashMap<String, Object> map, Configuration c) {
@@ -51,20 +64,39 @@ public class EZConfiguration {
         logger.info(map.toString());
     }
 
-    void reload() {
+    private void initializeServerConfigLinesArray() {
+        String line;
+        serverConfigLines.clear();
+        try {
+            FileReader fileReader = new FileReader(serverConfigFile);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            while ((line = bufferedReader.readLine()) != null) {
+                serverConfigLines.add(line);
+            }
+            fileReader.close();
+            bufferedReader.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void checkServerConfig() {
         if (needsUpdate()) {
             updateConfig();
         }
-        config = YamlConfiguration.loadConfiguration(configFile);
+    }
+
+    public void reload() {
+        checkServerConfig();
     }
 
     private boolean needsUpdate() {
-        if (config.getString("Version") != null &&
-                !config.getString("Version").equals(defaults.getString("Version"))) {
+        if (serverConfig.getString("Version") != null &&
+                !serverConfig.getString("Version").equals(defaultConfig.getString("Version"))) {
             return true;
         }
-        for (String key : defaults.getKeys(true)) {
-            if (!config.contains(key)) {
+        for (String key : defaultConfig.getKeys(true)) {
+            if (!serverConfig.contains(key)) {
                 return true;
             }
         }
@@ -72,42 +104,26 @@ public class EZConfiguration {
     }
 
     private void updateConfig() {
-        if (configFile.exists()) {
-            plugin.saveResource(configFile.getName(), true);
+        if (serverConfigFile.exists()) {
+            plugin.saveResource(serverConfigFile.getName(), true);
         }
-        for (String key : config.getKeys(true)) {
+        for (String key : serverConfig.getKeys(true)) {
             if (key.equalsIgnoreCase("version")) {
-                save(key, config.get(key), plugin.getDescription().getVersion());
+                setConfigValue(key,  plugin.getDescription().getVersion());
                 continue;
             }
-            if (config.contains(key)) {
-                save(key, defaults.getString(key), config.getString(key));
+            if (serverConfig.contains(key)) {
+                setConfigValue(key, serverConfig.getString(key));
             }
         }
+        serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
     }
 
-    private void save(final String key, final Object newValue){
-        save(key, configKeyMap.get(key), newValue);
-    }
-
-    private void save(final String key, final Object oldValue, final Object newValue) {
-        List<String> lines = new ArrayList<>();
-        String line;
+    private void saveServerConfigFile(){
         try {
-            FileReader fileReader = new FileReader(configFile);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-            while ((line = bufferedReader.readLine()) != null) {
-                if (line.startsWith(key + ":") && line.contains(oldValue.toString())) {
-                    line = line.replace(oldValue.toString(), newValue.toString());
-                }
-                lines.add(line);
-            }
-            fileReader.close();
-            bufferedReader.close();
-
-            FileWriter fileWriter = new FileWriter(configFile);
+            FileWriter fileWriter = new FileWriter(serverConfigFile);
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-            for (String s : lines) {
+            for (String s : serverConfigLines) {
                 bufferedWriter.write(s + "\n");
             }
             bufferedWriter.flush();
@@ -118,44 +134,89 @@ public class EZConfiguration {
         }
     }
 
-    void saveDefault(String key) {
-        save(key, config.getString(key), defaults.getString(key));
+    public void saveDefault(final String key) {
+        setConfigValue(key, defaultConfig.getString(key));
     }
 
-    public String getString(final String key) {
-        return config.getString(key);
-    }
-
-    public int getInt(final String path) {
-        return config.getInt(path);
-    }
-
-    public double getDouble(final String key) {
-        return config.getDouble(key);
-    }
-
-    public boolean getBoolean(final String key) {
-        return config.getBoolean(key);
-    }
-
-    public void setConfigValue(String key, Object newValue) {
-        if (configKeyMap.containsKey(key))
-            configKeyMap.replace(key, newValue);
+    public void setConfigValue(final String key, final Object newValue) {
+        final Object currentValue = serverConfigKeyMap.get(key);
+        if (serverConfigKeyMap.containsKey(key)) {
+            for (String line : serverConfigLines) {
+                if (line.startsWith(key)) {
+                    serverConfigLines.set(serverConfigLines.indexOf(line),
+                            line.replace(currentValue.toString(), newValue.toString()));
+                    break;
+                }
+            }
+            serverConfigKeyMap.replace(key, newValue);
+        }
+        logger.info(key + " has been changed to " + newValue);
+        saveServerConfigFile();
     }
 
     public void setString(final String key, final String newValue) {
-        save(key, newValue);
+        setConfigValue(key, newValue);
     }
 
     public void setInt(final String key, final int newValue) {
-        save(key, newValue);
+        setConfigValue(key, newValue);
     }
 
     public void setDouble(final String key, final double newValue) {
-        save(key, newValue);
+        setConfigValue(key, newValue);
     }
 
     public void setBoolean(final String key, final boolean newValue) {
-        save(key, newValue);
+        setConfigValue(key, newValue);
     }
+
+    public String getString(final String key) {
+        return serverConfig.getString(key);
+    }
+
+    public int getInt(final String path) {
+        return serverConfig.getInt(path);
+    }
+
+    public double getDouble(final String key) {
+        return serverConfig.getDouble(key);
+    }
+
+    public boolean getBoolean(final String key) {
+        return serverConfig.getBoolean(key);
+    }
+
+    public Object getConfigValue(final String key) {
+        return serverConfigKeyMap.get(key);
+    }
+
+    /*
+    private void save(final String key, final Object oldValue, final Object newValue) {
+        serverConfigLines = new ArrayList<>();
+        String line;
+        try {
+            FileReader fileReader = new FileReader(serverConfigFile);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            while ((line = bufferedReader.readLine()) != null) {
+                if (line.startsWith(key + ":") && line.contains(oldValue.toString())) {
+                    line = line.replace(oldValue.toString(), newValue.toString());
+                }
+                serverConfigLines.add(line);
+            }
+            fileReader.close();
+            bufferedReader.close();
+
+            FileWriter fileWriter = new FileWriter(serverConfigFile);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            for (String s : serverConfigLines) {
+                bufferedWriter.write(s + "\n");
+            }
+            bufferedWriter.flush();
+            bufferedWriter.close();
+            fileWriter.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+    */
 }
