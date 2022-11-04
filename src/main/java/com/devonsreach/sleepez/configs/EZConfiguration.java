@@ -9,6 +9,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+/**
+ *  EZConfiguration is a standalone drop-in class for Spigot Minecraft plugins. EZConfiguration
+ *  is made to handle all config values and requests including retrieving updated values from the config file
+ *  and saving new values from commands to the config file.
+ */
+
 public class EZConfiguration {
 
     private final JavaPlugin plugin;
@@ -50,11 +56,8 @@ public class EZConfiguration {
     private void initializeServerConfiguration() {
         if (!serverConfigFile.exists()) {
             plugin.saveResource(serverConfigFile.getName(), true);
-            serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
-        } else {
-            serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
-            checkServerConfig();
         }
+        serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
     }
 
     private void initializeKeyMap(HashMap<String, Object> map, Configuration c) {
@@ -84,6 +87,7 @@ public class EZConfiguration {
         if (needsUpdate()) {
             updateConfig();
         }
+        serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
     }
 
     public void reload() {
@@ -116,7 +120,6 @@ public class EZConfiguration {
                 setConfigValue(key, serverConfig.getString(key));
             }
         }
-        serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
     }
 
     private void saveServerConfigFile(){
@@ -134,10 +137,6 @@ public class EZConfiguration {
         }
     }
 
-    public void saveDefault(final String key) {
-        setConfigValue(key, defaultConfig.getString(key));
-    }
-
     public void setConfigValue(final String key, final Object newValue) {
         final Object currentValue = serverConfigKeyMap.get(key);
         if (serverConfigKeyMap.containsKey(key)) {
@@ -152,6 +151,10 @@ public class EZConfiguration {
         }
         logger.info(key + " has been changed to " + newValue);
         saveServerConfigFile();
+    }
+
+    public void setDefaultValue(final String key) {
+        setConfigValue(key, defaultConfigKeyMap.get(key));
     }
 
     public void setString(final String key, final String newValue) {
