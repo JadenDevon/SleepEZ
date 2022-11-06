@@ -10,9 +10,10 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 /**
- *  EZConfiguration is a standalone drop-in class for Spigot Minecraft plugins. EZConfiguration
- *  is made to handle all config values and requests including retrieving updated values from the config file
- *  and saving new values from commands to the config file.
+ *  EZConfiguration is a standalone drop-in class for Spigot Minecraft plugins that handles all
+ *  config values and requests including retrieving updated values from the config file and saving
+ *  new values from commands to the config file.
+ * @author JadenDevon
  */
 
 public class EZConfiguration {
@@ -26,9 +27,14 @@ public class EZConfiguration {
     private final HashMap<String, Object> serverConfigKeyMap;
     private final HashMap<String, Object> defaultConfigKeyMap;
 
-    public EZConfiguration(JavaPlugin pl, File file) {
-        plugin = pl;
-        logger = pl.getLogger();
+    /**
+     * Constructor for EZConfiguration Object
+     * @param plugin Object of type JavaPlugin matching your main Plugin instance
+     * @param file The file that holds your config data
+     */
+    public EZConfiguration(JavaPlugin plugin, File file) {
+        this.plugin = plugin;
+        logger = plugin.getLogger();
         serverConfigFile = file;
         serverConfigLines = new ArrayList<>();
         serverConfigKeyMap = new HashMap<>();
@@ -36,7 +42,7 @@ public class EZConfiguration {
         setup();
     }
 
-    public void setup() {
+    private void setup() {
         initializeDefaultConfiguration();
         initializeServerConfiguration();
         checkServerConfig();
@@ -60,9 +66,10 @@ public class EZConfiguration {
         serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
     }
 
-    private void initializeKeyMap(HashMap<String, Object> map, Configuration c) {
-        for (String key : c.getKeys(true)){
-            map.put(key, c.get(key));
+    private void initializeKeyMap(HashMap<String, Object> map, Configuration configuration) {
+        map.clear();
+        for (String key : configuration.getKeys(true)){
+            map.put(key, configuration.get(key));
         }
         logger.info(map.toString());
     }
@@ -90,9 +97,13 @@ public class EZConfiguration {
         serverConfig = YamlConfiguration.loadConfiguration(serverConfigFile);
     }
 
+    /**
+     *
+     */
     public void reload() {
         checkServerConfig();
     }
+
 
     private boolean needsUpdate() {
         if (serverConfig.getString("Version") != null &&
@@ -137,6 +148,11 @@ public class EZConfiguration {
         }
     }
 
+    /**
+     * Saves new config values of any generic type Object
+     * @param key A String type indicating the config key to have its value changed
+     * @param newValue An Object type denoting the replacement config value
+     */
     public void setConfigValue(final String key, final Object newValue) {
         final Object currentValue = serverConfigKeyMap.get(key);
         if (serverConfigKeyMap.containsKey(key)) {
@@ -153,73 +169,92 @@ public class EZConfiguration {
         saveServerConfigFile();
     }
 
+    /**
+     * Replaces current config value with the default value
+     * @param key A String type indicating the config key to have its value changed
+     */
     public void setDefaultValue(final String key) {
         setConfigValue(key, defaultConfigKeyMap.get(key));
     }
 
+    /**
+     *
+     * @param key A String type indicating the config key to have its value changed
+     * @param newValue A String type denoting the replacement config value
+     */
     public void setString(final String key, final String newValue) {
         setConfigValue(key, newValue);
     }
 
+    /**
+     *
+     * @param key A String type indicating the config key to have its value changed
+     * @param newValue An int type denoting the replacement config value
+     */
     public void setInt(final String key, final int newValue) {
         setConfigValue(key, newValue);
     }
 
+    /**
+     *
+     * @param key A String type indicating the config key to have its value changed
+     * @param newValue A double type denoting the replacement config value
+     */
     public void setDouble(final String key, final double newValue) {
         setConfigValue(key, newValue);
     }
 
+    /**
+     *
+     * @param key A String type indicating the config key to have its value changed
+     * @param newValue A boolean type denoting the replacement config value
+     */
     public void setBoolean(final String key, final boolean newValue) {
         setConfigValue(key, newValue);
     }
 
+    /**
+     *
+     * @param key A String type indicating the config key to be accessed
+     * @return
+     */
     public String getString(final String key) {
         return serverConfig.getString(key);
     }
 
-    public int getInt(final String path) {
-        return serverConfig.getInt(path);
+    /**
+     *
+     * @param key A String type indicating the config key to be accessed
+     * @return
+     */
+    public int getInt(final String key) {
+        return serverConfig.getInt(key);
     }
 
+    /**
+     *
+     * @param key A String type indicating the config key to be accessed
+     * @return
+     */
     public double getDouble(final String key) {
         return serverConfig.getDouble(key);
     }
 
+    /**
+     *
+     * @param key A String type indicating the config key to be accessed
+     * @return
+     */
     public boolean getBoolean(final String key) {
         return serverConfig.getBoolean(key);
     }
 
+    /**
+     *
+     * @param key A String type indicating the config key to be accessed
+     * @return
+     */
     public Object getConfigValue(final String key) {
         return serverConfigKeyMap.get(key);
     }
-
-    /*
-    private void save(final String key, final Object oldValue, final Object newValue) {
-        serverConfigLines = new ArrayList<>();
-        String line;
-        try {
-            FileReader fileReader = new FileReader(serverConfigFile);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-            while ((line = bufferedReader.readLine()) != null) {
-                if (line.startsWith(key + ":") && line.contains(oldValue.toString())) {
-                    line = line.replace(oldValue.toString(), newValue.toString());
-                }
-                serverConfigLines.add(line);
-            }
-            fileReader.close();
-            bufferedReader.close();
-
-            FileWriter fileWriter = new FileWriter(serverConfigFile);
-            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-            for (String s : serverConfigLines) {
-                bufferedWriter.write(s + "\n");
-            }
-            bufferedWriter.flush();
-            bufferedWriter.close();
-            fileWriter.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-    */
 }
